@@ -21,6 +21,7 @@
       background-color: #fff;
       text-align: center;
       box-sizing: border-box;
+      position: relative;
     }
     .judul {
       font-size: 18px;
@@ -65,6 +66,39 @@
       margin-bottom: 10px;
       display: none;
     }
+
+    /* Spinner dan overlay */
+    .overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-size: 14px;
+      color: #2c3e50;
+    }
   </style>
 </head>
 <body>
@@ -76,34 +110,44 @@
       <div id="peringatan" class="warning">NIS tidak terdaftar!</div>
       <input type="submit" value="Login" class="tombol">
     </form>
+
+    <!-- Spinner overlay -->
+    <div class="overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Mohon tunggu, mengecek NIS...</div>
+    </div>
   </div>
 
   <script>
     const allowedNIS = ["2415980","2415981","2415982","2415983","2415984","2415985","2415986","2415987","2415988","2415989","2415990","2415991","2415992","2415993","2415994","2415995","2415996","2415997","2415998","2415999","2416000","2416001","2416002","2416003","2416004","2416005","2416006","2416007","2416008","2416009","2416010","2416011","2416012","2416013","2416014","2416015","2416016","2416017","2416018","2416019","2416020","2416021","2416022","2416023","2416024","2416025","2416026","2416027","2416028","2416029","2416030","2416031","2416032","2416033","2416034","2416035","2416036","2416037","2416038","2416039","2416040","2416041","2416042","2416043","2416044","2416045","2416046","2416047","2416048","2416049","2416050","2416051"];
-    
+
     const redirectURL = "https://sites.google.com/guru.smk.belajar.id/smkn-26-jakarta-kurikulum/sumatif-akhir-semester-genap/pelaksanaan-pas/kelas-x/kgs";
     const webAppURL = "https://script.google.com/macros/s/AKfycbzk7cK2hXLItvrxqJri2ryqqBcSdrZQ0hxhCAGGhvtsrHbIehQg5O6MrzlOn7pvm58m/exec";
 
     const form = document.getElementById("login-form");
     const nisInput = form.elements["nis"];
     const warning  = document.getElementById("peringatan");
+    const overlay  = document.getElementById("loadingOverlay");
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       const nis = nisInput.value.trim();
 
       if (allowedNIS.includes(nis)) {
-        // Kirim NIS ke Google Sheets
+        overlay.style.display = "flex"; // Tampilkan loading spinner
+
+        // Kirim ke Google Sheets via Web App
         fetch(webAppURL, {
           method: "POST",
           body: new URLSearchParams({ nis: nis }),
-          mode: "no-cors"
-        }).then(() => {
+        }).then(response => {
+          // Setelah tercatat, lakukan redirect
           window.location.href = redirectURL;
         }).catch(() => {
-          alert("Gagal mencatat login, tapi tetap dialihkan.");
-          window.location.href = redirectURL;
+          alert("Terjadi kesalahan saat mencatat ke Google Sheet.");
+          overlay.style.display = "none";
         });
+
       } else {
         warning.style.display = "block";
       }
@@ -117,5 +161,6 @@
   </script>
 </body>
 </html>
+
 
 
